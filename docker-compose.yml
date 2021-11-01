@@ -1,0 +1,77 @@
+version: '3'
+
+services:
+  main:
+    build: ./main
+    volumes:
+      - ./main/alembic:/app/alembic
+    depends_on:
+      - db
+      - dd-agent
+    environment:
+      - DD_SERVICE="renthub"
+      - DD_ENV="dev"
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_AGENT_PORT=8126
+    ports:
+      - "8000:8000"
+
+  daft:
+    build: ./provider_daft
+    depends_on:
+      - dd-agent
+    environment:
+      - DD_SERVICE="daft_info"
+      - DD_ENV="dev"
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_AGENT_PORT=8126
+    ports:
+      - "8001:8000"
+
+  notification:
+    build: ./notification
+    depends_on:
+      - dd-agent 
+    environment:
+      - DD_SERVICE="notifications"
+      - DD_ENV="dev"
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_AGENT_PORT=8126
+    env_file:
+        - ./notification/secrets.env
+    ports:
+      - "8010:8000"
+      
+  dd-agent:
+    image: datadog/agent:latest
+    volumes:
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /proc/:/host/proc/:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    env_file:
+        - ./secrets_dd.env
+  
+  db:
+    image: postgres:14-alpine3.14
+    depends_on:
+      - dd-agent 
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DD_SERVICE="postgres"
+      - DD_ENV="dev"
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_AGENT_PORT=8126
+    ports:
+      - 5432:5432
