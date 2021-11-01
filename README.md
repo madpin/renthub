@@ -6,9 +6,10 @@ Notification Service to send message as soon as someone create an ad on renting 
 
 ### Alembic:
 
+```docker-compose run --rm rentcrud alembic init -t async alembic```
 Prepare the changes:
 ```bash
-docker-compose build && docker-compose run --rm main alembic revision --autogenerate -m "first tables"
+docker-compose build && docker-compose run --rm rentcrud alembic revision --autogenerate -m "first tables"
 ```
 
 Deploy the changes:

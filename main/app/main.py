@@ -4,7 +4,7 @@ from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
-import models as models
+# import models as models
 import crud as crud
 import schemas as schemas
 from database import async_session, get_session
@@ -23,13 +23,13 @@ async def create_user(user: schemas.UserCreate, db: AsyncSession = Depends(get_s
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     try:
+        result = crud.create_user(db=db, user=user)
         await db.commit()
-        return db_user
     except IntegrityError as ex:
         await db.rollback()
         raise ValueError("The city is already stored")
 
-    # return crud.create_user(db=db, user=user)
+    return result
 
 
 @app.get("/users/", response_model=List[schemas.User])

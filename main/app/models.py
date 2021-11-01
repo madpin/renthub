@@ -11,6 +11,10 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     hashed_password = Column(String)
     is_active = Column(Boolean, default=True)
+    def __repr__(self):
+        return "<User(id='%s', emails='%s', is_active='%s')>" % (
+        self.id, self.email, self.is_active)
+
 
     # items = relationship("Item", back_populates="owner")
 

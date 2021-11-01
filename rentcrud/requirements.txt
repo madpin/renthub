@@ -1,0 +1,6 @@
+alembic
+asyncpg
+fastapi
+sqlmodel
+uvicorn
+ddtrace
