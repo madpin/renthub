@@ -1,6 +1,6 @@
-uvicorn
-fastapi
-sqlalchemy[asyncio]
 alembic
-asyncpg
+fastapi
+sqlmodel
+uvicorn
 ddtrace
+psycopg2-binary

@@ -1,83 +1,57 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Float, DateTime
-from sqlalchemy.orm import relationship
-
-from database import Base
+from typing import Optional, List
+from sqlmodel import SQLModel, Field, Relationship
 
 
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    email = Column(String, unique=True, index=True)
-    hashed_password = Column(String)
-    is_active = Column(Boolean, default=True)
-    def __repr__(self):
-        return "<User(id='%s', emails='%s', is_active='%s')>" % (
-        self.id, self.email, self.is_active)
+class SongBase(SQLModel):
+    name: str
+    artist: str
+    year: Optional[int] = None
 
 
-    # items = relationship("Item", back_populates="owner")
+class Song(SongBase, table=True):
+    id: int = Field(primary_key=True)
+class SongRead(SongBase):
+    id: int
 
 
-class Listing(Base):
-    __tablename__ = "listings"
+class SongCreate(SongBase):
+    pass
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-    is_active = Column(Boolean, default=True)
-
-    title = Column(String, index=True)
-    url = Column(String)
-    source = Column(String)
-    address = Column(String)
-    short_postal_code = Column(String)
-    postal_code = Column(String)
-
-    pictures = Column(Integer)
-    latitude = Column(Float)
-    longitude = Column(Float)
-
-    images = relationship("Picture", back_populates="listing")
-    distances = relationship("ListingDistance", back_populates="listing")
+class Increment(SQLModel, table=True):
+    id: int = Field(primary_key=True)
 
 
-class Picture(Base):
-    __tablename__ = "pictures"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-    url = Column(String)
-    size_x = Column(Integer)
-    size_y = Column(Integer)
-    listing_id = Column(Integer, ForeignKey("listings.id"))
-    listing = relationship("Listing", back_populates="images")
-
-class Point(Base):
-    __tablename__ = "points"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-    is_active = Column(Boolean, default=True)
+# #############################################################################
+class ListingBase(SQLModel):
+    url: str
     
-    name = Column(String)
-    latitude = Column(Float)
-    longitude = Column(Float)
-    distances = relationship("ListingDistance", back_populates="point")
+class Listing(ListingBase, table=True):
+    __tablename__ = 'listings'
+    id: int = Field(primary_key=True)
+    images: List["Image"] = Relationship(back_populates="listing", 
+    sa_relationship_kwargs={'lazy': 'selectin'})
+    
+class ListingRead(ListingBase):
+    id: str
 
-class ListingDistance(Base):
-    __tablename__ = "listing_distances"
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    created_at = Column(DateTime)
-    updated_at = Column(DateTime)
-    distance_km = Column(Float)
+# #############################################################################
 
-    listing_id = Column(Integer, ForeignKey("listings.id"))
-    listing = relationship("Listing", back_populates="distances")
+class ImageBase(SQLModel):
+    url: str
+    size_x: float
+    size_y: float
+    listing_id: Optional[int] = Field(default=None, foreign_key="listings.id")
 
-    point_id = Column(Integer, ForeignKey("points.id"))
-    point = relationship("Point", back_populates="distances")
+class Image(ImageBase, table=True):
+    __tablename__ = 'images'
+    id: int = Field(primary_key=True)
+    listing: Optional[Listing] = Relationship(back_populates="images",
+    sa_relationship_kwargs={'lazy': 'selectin'})
 
+class ImageRead(ImageBase):
+    id: int
+class ImageReadWithListings(ImageRead):
+    listing: Optional[Listing] = None
 
-
-
+class ListingReadWithImages(ListingRead):
+    images: List["ImageRead"] = []
