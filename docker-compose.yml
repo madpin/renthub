@@ -63,6 +63,22 @@ services:
         - ./notification/secrets.env
     ports:
       - "8010:8000"
+
+  location:
+    build: ./location
+    depends_on:
+      - dd-agent 
+    environment:
+      - DD_SERVICE="location"
+      - DD_ENV="dev"
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_AGENT_PORT=8126
+    env_file:
+        - ./location/secrets.env
+    ports:
+      - "8020:8000"
       
   dd-agent:
     image: datadog/agent:latest
