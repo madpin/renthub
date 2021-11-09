@@ -1,16 +1,21 @@
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import Session
+# from sqlalchemy.ext.asyncio import AsyncSession
+# from sqlalchemy.exc import IntegrityError
+# from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy import select
 
-from models import Song, Listing, Image, SongRead, ListingRead
+from models import (
+    Song, SongRead, SongCreate, SongUpdate,
+    Listing, Image, ListingRead
+)
 # from database import async_session, get_session
 from database import get_session
 # from models import ImageWithRelationship, ListingWithRelationship,ListingReadWithImages
 from models import ListingReadWithImages
+from database import get_session
 
 # models.Base.metadata.create_all(bind=engine)
 # Hopefully not needed with Alembic
@@ -21,15 +26,37 @@ app = FastAPI()
 
 
 @app.get("/songs", response_model=List[SongRead])
-async def get_songs(session: AsyncSession = Depends(get_session)):
-    result = await session.execute(select(Song))
+def get_songs(session: Session = Depends(get_session)):
+    result = session.execute(select(Song))
     songs = result.scalars().all()
     return songs
 
+@app.post("/songs", response_model=SongRead)
+def create_user(song: SongCreate, session: Session = Depends(get_session)):
+    db_item = Song(**song.dict())
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+@app.patch("/songs/{song_id}", response_model=SongRead)
+def update_song(song_id: int, song: SongUpdate, session: Session = Depends(get_session)):
+    db_song = session.get(Song, song_id)
+    if not db_song:
+        raise HTTPException(status_code=404, detail="Song not found")
+    song_data = song.dict(exclude_unset=True)
+    for key, value in song_data.items():
+        setattr(db_song, key, value)
+    session.add(db_song)
+    session.commit()
+    session.refresh(db_song)
+    return db_song
+
+
 
 @app.get("/listings", response_model=List[ListingReadWithImages])
-async def get_songs(session: AsyncSession = Depends(get_session)):
-    result = await session.execute(select(Listing))
+def get_songs(session: Session = Depends(get_session)):
+    result = session.execute(select(Listing))
     # result = await session.execute(select(Listing).options(selectinload(Listing.images))) # Works!!!!
     # result = await session.execute(select(Listing, Image).where(Listing.id == Image.listing_id))
     # result = await session.execute(select(Listing).options(joinedload(Listing.images)) # Failed
@@ -43,8 +70,8 @@ async def get_songs(session: AsyncSession = Depends(get_session)):
 #     return listings
 
 @app.get("/listings2", response_model=List[ListingRead])
-async def get_listings2(session: AsyncSession = Depends(get_session)):
-    result = await session.exec(select(Listing))
+def get_listings2(session: Session = Depends(get_session)):
+    result = session.exec(select(Listing))
     listings = result.scalars().all()
     return listings
 
