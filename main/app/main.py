@@ -1,7 +1,9 @@
 from typing import List
+import asyncio
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload
 # from sqlalchemy.ext.asyncio import AsyncSession
 # from sqlalchemy.exc import IntegrityError
 # from sqlalchemy.orm import joinedload, selectinload
@@ -9,19 +11,40 @@ from sqlalchemy import select
 
 from models import (
     Song, SongRead, SongCreate, SongUpdate,
-    Listing, Image, ListingRead
+    Listing, ListingCreate, ListingRead, ListingReadWithRelations, ListingCreateWithRelations,
+    Image, ImageCreate, ImageRead,
+    Facility
 )
 # from database import async_session, get_session
 from database import get_session
-# from models import ImageWithRelationship, ListingWithRelationship,ListingReadWithImages
-from models import ListingReadWithImages
-from database import get_session
+from backgroud import BackgroundRunner
 
 # models.Base.metadata.create_all(bind=engine)
 # Hopefully not needed with Alembic
 
 app = FastAPI()
 
+
+
+runner = BackgroundRunner()
+
+@app.on_event('startup')
+async def app_startup():
+    asyncio.create_task(runner.run_main())
+
+
+@app.get("/runner/is_running", response_model=bool)
+def runner_is_running():
+    return runner.is_running
+
+@app.put("/runner/is_running")
+def runner_is_running_put(is_running:bool):
+    runner.is_running = is_running
+    return 'ok'
+    
+@app.get("/runner/value")
+def runner_value():
+    return runner.value
 
 
 
@@ -54,26 +77,53 @@ def update_song(song_id: int, song: SongUpdate, session: Session = Depends(get_s
 
 
 
-@app.get("/listings", response_model=List[ListingReadWithImages])
+@app.get("/listings", response_model=List[ListingReadWithRelations])
 def get_songs(session: Session = Depends(get_session)):
-    result = session.execute(select(Listing))
-    # result = await session.execute(select(Listing).options(selectinload(Listing.images))) # Works!!!!
-    # result = await session.execute(select(Listing, Image).where(Listing.id == Image.listing_id))
-    # result = await session.execute(select(Listing).options(joinedload(Listing.images)) # Failed
-    songs = result.scalars().all()
+    result = session.query(Listing).options(joinedload('*'))
+    songs = result.all()
+    print(songs)
     return songs
-# @app.get("/listings", response_model=List[ListingReadWithImages])
+
+
+@app.post("/listings", response_model=ListingRead)
+def listings_post(listing: ListingReadWithRelations, session: Session = Depends(get_session)):
+    db_item = Listing(**listing.dict())
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+
+@app.post("/listings/withRel", response_model=ListingReadWithRelations)
+def listings_post(listing: ListingCreateWithRelations, session: Session = Depends(get_session)):
+    db_item = Listing.from_orm(listing)
+    facilities_db = []
+    for facility in listing.facilities:
+        facility_rec = session.query(Facility).where(Facility.name == facility.name).first()
+        if(facility_rec is None):
+            facility_rec = Facility(
+                name=facility
+            )
+        facilities_db.append(facility_rec)
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+
+
+@app.post("/images", response_model=ImageRead)
+def listings_post(listing: ImageCreate, session: Session = Depends(get_session)):
+    db_item = Image(**listing.dict())
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return db_item
+# @app.get("/listings", response_model=List[ListingReadWithRelations])
 # async def get_listings(session: AsyncSession = Depends(get_session)):
 #     # result = await session.execute(select(ListingWithRelationship, Image).join(Image))
 #     result = await session.exec(select(Listing))
 #     listings = result.scalars().all()
 #     return listings
-
-@app.get("/listings2", response_model=List[ListingRead])
-def get_listings2(session: Session = Depends(get_session)):
-    result = session.exec(select(Listing))
-    listings = result.scalars().all()
-    return listings
 
 # @app.get("/images", response_model=List[ImageWithRelationship])
 # async def get_images(session: AsyncSession = Depends(get_session)):

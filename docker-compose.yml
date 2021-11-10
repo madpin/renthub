@@ -5,6 +5,7 @@ services:
     build: ./main
     volumes:
       - ./main/alembic:/app/alembic
+      - ./main/app:/app # Development only
     depends_on:
       - db
       - dd-agent

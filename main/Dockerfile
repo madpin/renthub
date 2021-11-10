@@ -18,4 +18,4 @@ COPY ./app /app
 # ENTRYPOINT [ "python" ]
 
 # CMD [ "ddtrace-run", "uvicorn", "main:app",  "--host", "0.0.0.0" ]
-CMD ["uvicorn", "main:app",  "--host", "0.0.0.0" ]
+CMD ["uvicorn", "main:app",  "--host", "0.0.0.0", "--reload"]

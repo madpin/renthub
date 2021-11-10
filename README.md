@@ -25,3 +25,6 @@ Deploy the changes:
 ```bash
 docker-compose build && docker-compose run --rm main alembic upgrade head
 ```
+
+Best Practices:
+https://sqlmodel.tiangolo.com/tutorial/fastapi/relationships/
