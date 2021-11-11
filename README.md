@@ -18,13 +18,16 @@ But don't forget to move to the right place!
 --- 
 Prepare the changes:
 ```bash
-docker-compose build && docker-compose run --rm main alembic revision --autogenerate -m "images 2"
+docker-compose build && docker-compose run --rm main alembic -c /app/alembic.ini revision --autogenerate -m "images 2"
 ```
 
 Deploy the changes:
 ```bash
-docker-compose build && docker-compose run --rm main alembic upgrade head
+docker-compose build && docker-compose run --rm main alembic -c /app/alembic.ini upgrade head
 ```
 
 Best Practices:
 https://sqlmodel.tiangolo.com/tutorial/fastapi/relationships/
+
+Docker-compose in VSCode:
+https://code.visualstudio.com/docs/containers/docker-compose

@@ -11,7 +11,7 @@ WORKDIR /app
 RUN pip install --upgrade pip setuptools wheel
 RUN pip install -r requirements.txt
 
-COPY ./alembic.ini /app/alembic.ini
+# COPY ./alembic.ini /app/alembic.ini
 
 COPY ./app /app
 
