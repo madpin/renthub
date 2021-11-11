@@ -27,30 +27,31 @@ class SearchResultList(BaseModel):
 
 class DaftListing(BaseModel):
     id: str = None
+    hash_version: str = None
     title: str = None
-    seoTitle: str = None
+    seo_title: str = None
     sections: List[str] = None
-    featuredLevel: str = None
-    lastUpdateDate: datetime.date = None
+    featured_level: str = None
+    last_updated: datetime.date = None
     price: str = None
-    numBedrooms: str = None
-    numBathrooms: str = None
-    propertyType: str = None
-    daftShortcode: str = None
-    totalImages: int = None
-    hasVideo: bool = None
-    hasVirtualTour: bool = None
-    hasBrochure: bool = None
+    num_beds: str = None
+    num_baths: str = None
+    property_type: str = None
+    shortcode: str = None
+    images_count: int = None
+    has_video: bool = None
+    has_virtual_tour: bool = None
+    has_brochure: bool = None
     ber: str = None
-    seoFriendlyPath: str = None
+    seo_friendly_path: str = None
     category: str = None
     state: str = None
-    premierPartner: bool = None
+    premier_partner: bool = None
     description: str = None
     facilities: List[str] = None
     images: List[str] = None
-    propertyOverview: dict = None
-    listingViews: str = None
+    property_overview: dict = None
+    listing_views: str = None
 
 def DaftSeller(BaseModel):
     sellerId: int
