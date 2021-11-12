@@ -15,8 +15,16 @@ class Location(BaseModel):
     name: str
     tags: Optional[List[str]]
 
-class RouteSumary(BaseModel):
+class RouteSummary(BaseModel):
     waking_distance: int
     total_distance: int
     total_time: int
     public_transport_count: int
+
+class InterestPoint(Point):
+    name: str
+    address: str
+    distance: int
+    website: Optional[str]
+    website_domain: Optional[str]
+    chain_name: Optional[str]
