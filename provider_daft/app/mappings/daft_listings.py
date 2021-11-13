@@ -23,7 +23,7 @@ async def get_daft_search_result(location=None, min_price=None, max_price=None):
     listings = daft.search()
     result_items = []
     for listing in listings:
-        searchItem = schemas.SearchResultItem(
+        searchItem = schemas.SearchResultItem(                  
             url=listing.daft_link,
             title=listing.title,
             monthly_price=listing.monthly_price,

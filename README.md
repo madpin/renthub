@@ -31,3 +31,19 @@ https://sqlmodel.tiangolo.com/tutorial/fastapi/relationships/
 
 Docker-compose in VSCode:
 https://code.visualstudio.com/docs/containers/docker-compose
+
+# Main Loop Script
+
+- Read the daft search
+  - For each:
+    - Check the db it that's already there:
+      - 👍 
+        - Check if the telegram message was sent
+        - Continue
+      - 👎
+        - Read the full details
+        - 🔮 Save the images
+          - ML to tag them
+        - Send the telegram message
+          - 👍 Save to the DB
+          - 👎 That's ok, will try next time

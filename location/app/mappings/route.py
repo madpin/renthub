@@ -8,6 +8,7 @@ from herepy import (
     RoutingApi,
     RouteMode,
     GeocoderApi,
+    RoutingResponseV8,
 )
 
 import schemas
@@ -68,6 +69,7 @@ def get_routes(lat1, long1, lat2, long2):
         waypoint_b=[lat2, long2],
         combine_change=True,
         modes=[RouteMode.balanced, RouteMode.publicTransportTimeTable],
+        
     )
     response_dict = response.as_dict()
     ret_ = []
