@@ -79,7 +79,7 @@ async def get_listing_details(url):
         elif('dfpTargetingValues' in pageProps and 'price' in listing['nonFormatted']):
             result.price = pageProps['dfpTargetingValues']['price']
     result.hash_version = hashlib.md5(
-        f"{result.description}{result.price}".encode('utf-8')).hexdigest()
+        f"{result.images_count}{result.description}{result.price}".encode('utf-8')).hexdigest()
 
     with open(f"/data/{listing.get('id', '')}.json", 'w') as f:
         json.dump(data, f, indent=2)

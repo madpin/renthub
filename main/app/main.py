@@ -1,5 +1,6 @@
 from typing import List
 import asyncio
+import requests
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
@@ -45,6 +46,17 @@ def runner_is_running_put(is_running:bool):
 @app.get("/runner/value")
 def runner_value():
     return runner.value
+
+
+@app.get("/test", )
+def test():
+    try:
+        response = requests.get('http://daft:8000/search_result')
+        response.raise_for_status()
+        # Additional code will only run if the request is successful
+    except requests.exceptions.HTTPError as error:
+        print(error)
+    return response.json()
 
 
 

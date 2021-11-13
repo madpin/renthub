@@ -4,3 +4,4 @@ sqlmodel
 uvicorn
 ddtrace
 psycopg2-binary
+requests

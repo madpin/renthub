@@ -9,6 +9,9 @@ services:
     depends_on:
       - db
       - dd-agent
+      - daft
+      - notification
+      - location
     environment:
       - DD_SERVICE="renthub"
       - DD_ENV="dev"
