@@ -72,9 +72,20 @@ async def get_listing_details(url):
         result.hasBrochure = listing['media'].get('hasBrochure', '')
         result.images = []
         for image_block in listing['media'].get('images', []):
-            print(image_block)
+
+            url_600 = None
+            for key, val in image_block.items():
+                print(key, val)
+                digit_groups = re.findall("\d+", key)
+                if((len(digit_groups) > 0) and (int(re.findall("\d+", key)[0]) <= 600) and val.startswith('http')):
+                    url_600 = val
+                    break
             result.images.append(
-                next(filter(lambda y: y.startswith('http'), image_block.values()))
+                schemas.Image(
+                    url=next(filter(lambda y: y.startswith('http'), image_block.values())),
+                    url_600=url_600
+                    
+                )
             )
 
     # Price

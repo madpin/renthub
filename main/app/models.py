@@ -107,6 +107,13 @@ class ListingRead(ListingBase):
 
 class ListingCreate(ListingBase):
     pass
+class ListingUpdate(ListingBase):
+    id: Optional[str]
+    is_active: Optional[bool]
+    url: Optional[str]
+    source: Optional[str]
+    source_id: Optional[str]
+    address: Optional[str]
 
 # #############################################################################
 
@@ -142,7 +149,7 @@ class FacilityCreate(FacilityBase):
 class ImageBase(SQLModel):
     id: Optional[int]
     url: str
-    url_small: Optional[str]
+    url_600: Optional[str]
     size_x: Optional[float]
     size_y: Optional[float]
     listing_id: Optional[int] = Field(default=None, foreign_key="listings.id")

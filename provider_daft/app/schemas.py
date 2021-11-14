@@ -25,6 +25,11 @@ class SearchResultList(BaseModel):
     result_list: List[SearchResultItem]
 
 
+class Image(BaseModel):
+    url: str
+    url_600: Optional[str]
+
+
 class DaftListing(BaseModel):
     id: str = None
     hash_version: str = None
@@ -49,9 +54,10 @@ class DaftListing(BaseModel):
     premierPartner: bool = None
     description: str = None
     facilities: List[str] = None
-    images: List[str] = None
+    images: List[Image] = None
     propertyOverview: List[str] = None
     listingViews: str = None
+
 
 def DaftSeller(BaseModel):
     sellerId: int

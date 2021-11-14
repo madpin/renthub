@@ -25,6 +25,7 @@ def get_daft_search_result():
 
 def get_daft_details(url):
     try:
+        print(url)
         params = {
             'url': url,
             'method': 'json_details',
@@ -168,7 +169,7 @@ def save_new_listing(search_result, listing_d):
             facilities_arr.append(facility_obj)
         listing.facilities = facilities_arr
 
-        listing.images = [Image(url=x) for x in listing_d['images']]
+        listing.images = [Image(url=x['url'], url_600=x['url_600']) for x in listing_d['images']]
         listing.routes = get_routes(listing)
         listing.places_nearby = get_places_nearby(listing)
 

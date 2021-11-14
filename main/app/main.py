@@ -2,7 +2,7 @@ from typing import List
 import asyncio
 import requests
 
-from fastapi import Depends, FastAPI, Request, HTTPException
+from fastapi import Depends, FastAPI, Request, HTTPException, APIRouter
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -16,7 +16,7 @@ from sqlalchemy import select
 
 from models import (
     Song, SongRead, SongCreate, SongUpdate,
-    Listing, ListingCreate, ListingRead, ListingReadWithRelations, ListingCreateWithRelations,
+    Listing, ListingCreate, ListingRead, ListingReadWithRelations, ListingCreateWithRelations,ListingUpdate,
     Image, ImageCreate, ImageRead,
     Facility
 )
@@ -30,7 +30,7 @@ from loop import give_it_a_try
 # Hopefully not needed with Alembic
 
 app = FastAPI()
-
+router = APIRouter(prefix='/api')
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
@@ -46,13 +46,13 @@ async def read_item(request: Request, id: str, session: Session = Depends(get_se
                                       })
 
 
-@app.get("/test2/", response_class=HTMLResponse)
-async def read_item(request: Request):
-    return templates.TemplateResponse("project-detail.html",
-                                      {
-                                          "request": request,
-                                          "listing": Listing
-                                      })
+# @app.get("/test2/", response_class=HTMLResponse)
+# async def read_item(request: Request):
+#     return templates.TemplateResponse("project-detail.html",
+#                                       {
+#                                           "request": request,
+#                                           "listing": Listing
+#                                       })
 
 
 runner = BackgroundRunner()
@@ -159,6 +159,18 @@ def listings_post(listing: ListingCreateWithRelations, session: Session = Depend
     session.refresh(db_item)
     return db_item
 
+@app.patch("/listing/{id}", response_model=ListingRead)
+def update_song(id: int, listing: ListingUpdate, session: Session = Depends(get_session)):
+    db_listing = session.get(Listing, id)
+    if not db_listing:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    listing_data = listing.dict(exclude_unset=True)
+    for key, value in listing_data.items():
+        setattr(db_listing, key, value)
+    session.add(db_listing)
+    session.commit()
+    session.refresh(db_listing)
+    return db_listing
 
 @app.post("/images", response_model=ImageRead)
 def listings_post(listing: ImageCreate, session: Session = Depends(get_session)):
