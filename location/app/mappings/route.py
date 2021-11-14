@@ -1,7 +1,8 @@
 import os
 from urllib import parse
 
-import logging
+from fastapi.logger import logger
+
 
 from herepy import (
     PlacesApi,
@@ -15,15 +16,15 @@ import schemas
 
 
 def get_route_raw(routes_dict):
-    logging.debug(routes_dict)
+    logger.debug(routes_dict)
 
     response = routes_dict.get('response', {})
-    logging.debug('response')
-    logging.debug(response)
+    logger.debug('response')
+    logger.debug(response)
 
     routes = response.get('route', [])
-    logging.debug('routes')
-    logging.debug(routes)
+    logger.debug('routes')
+    logger.debug(routes)
 
     for route in routes:
 
@@ -32,11 +33,11 @@ def get_route_raw(routes_dict):
         summary = route.get('summary', {})
 
         legs = route.get('leg', [])
-        logging.debug('legs')
+        logger.debug('legs')
         for leg in legs:
 
             if('maneuver' in leg):
-                logging.debug('maneuver')
+                logger.debug('maneuver')
                 yield {
                     'maneuvers': leg['maneuver'],
                     'public_transport_count': public_transport_count,

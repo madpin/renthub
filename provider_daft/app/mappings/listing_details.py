@@ -98,7 +98,7 @@ async def get_listing_details(url):
         f"{result.totalImages}{result.description}{result.price}".encode('utf-8')).hexdigest()
 
 
-    with open(f"/data/{listing.get('id', '')}.json", 'w') as f:
+    with open(f"/data/jsons/{listing.get('id', '')}.json", 'w') as f:
         json.dump(data, f, indent=2)
 
     return result

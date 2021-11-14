@@ -7,6 +7,7 @@ import requests
 from requests.models import to_key_val_list
 
 from sqlmodel import Field, Session, SQLModel, create_engine, select
+from fastapi.logger import logger
 
 
 from database import engine
@@ -15,7 +16,7 @@ from models import Listing, Facility, Image, InterestPoint, Route, RouteCreate, 
 
 def get_daft_search_result():
     try:
-        response = requests.get('http://daft:8000/search_result')
+        response = requests.get('http://daft:8000/search_result/')
         response.raise_for_status()
         # Additional code will only run if the request is successful
     except requests.exceptions.HTTPError as error:
@@ -32,12 +33,14 @@ def get_daft_details(url):
         }
 
         response = requests.get(
-            'http://daft:8000/listing_details', params=params)
+            'http://daft:8000/listing_details/', params=params)
         response.raise_for_status()
+        return response.json()
         # Additional code will only run if the request is successful
     except requests.exceptions.HTTPError as error:
-        print(error)
-    return response.json()
+        logger.error(error)
+        return response.json()
+    
 
 
 def get_routes_json(from_lat, from_long, to_lat, to_long):
@@ -48,12 +51,13 @@ def get_routes_json(from_lat, from_long, to_lat, to_long):
         }
 
         response = requests.post(
-            'http://location:8000/route', data=json.dumps(data))
+            'http://location:8000/route/', data=json.dumps(data))
         response.raise_for_status()
+        return response.json()
         # Additional code will only run if the request is successful
     except requests.exceptions.HTTPError as error:
-        print(error)
-    return response.json()
+        logger.error(error)
+        return {}
 
 
 def get_routes(listing: Listing):
@@ -86,7 +90,7 @@ def get_places_nearby_json(from_lat, from_long, query):
         data = {"lat": from_lat, "long": from_long}
 
         response = requests.post(
-            'http://location:8000/interest_places_nearby', data=json.dumps(data))
+            'http://location:8000/interest_places_nearby/', data=json.dumps(data))
         response.raise_for_status()
         # Additional code will only run if the request is successful
     except requests.exceptions.HTTPError as error:
@@ -178,12 +182,13 @@ def save_new_listing(search_result, listing_d):
         session.commit()
 
 
-def give_it_a_try():
+def give_it_a_try(how_many = 25):
     ret_ = {}
 
     daft_search_results = get_daft_search_result()
     daft_result_list = daft_search_results['result_list']
     c = 0
+    details = []
     with Session(engine) as session:
 
         for daft_result in daft_result_list:
@@ -202,7 +207,7 @@ def give_it_a_try():
                 save_new_listing(daft_result, details)
 
             c += 1
-            if c < 10:
+            if c < how_many:
                 continue
             break
     return details

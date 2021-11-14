@@ -6,3 +6,4 @@ nums-from-string
 loguru
 ddtrace
 https://github.com/AnthonyBloomer/daftlistings/archive/master.zip
+gunicorn

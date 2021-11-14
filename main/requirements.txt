@@ -7,3 +7,4 @@ psycopg2-binary
 requests
 python-dateutil
 jinja2
+loguru

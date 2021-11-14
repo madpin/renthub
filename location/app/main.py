@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 from pydantic.errors import ExtraError
 import uvicorn
 from typing import List, Optional
@@ -11,6 +13,7 @@ from herepy import (
     RouteMode,
     GeocoderApi,
 )
+from custom_logger import CustomizeLogger
 # from location.app.schemas import Point
 
 
@@ -19,7 +22,15 @@ import schemas
 from mappings.InterestPoints import get_interenst_points
 from mappings.route import get_routes
 
-app = FastAPI()
+config_path=Path(__file__).with_name("custom_logger.json")
+def create_app() -> FastAPI:
+    app = FastAPI(title='CustomLogger', debug=False)
+    logger = CustomizeLogger.make_logger(config_path)
+    app.logger = logger
+    return app
+
+app = create_app()
+# app = FastAPI()
 
 
 @app.post("/interest_places_nearby/", response_model=List[schemas.InterestPoint])

@@ -1,3 +1,5 @@
+from fastapi.logger import logger
+
 import schemas
 from daftlistings import Daft, SearchType, SortType
 
@@ -12,7 +14,7 @@ async def get_daft_search_result(location=None, min_price=None, max_price=None):
         max_price = 1800
 
     daft = Daft()
-
+    logger.info(f"location: {location}, min_price: {min_price}, max_price:{max_price}")
     daft.set_location("Dublin City")
     daft.set_search_type(SearchType.RESIDENTIAL_RENT)
     daft.set_min_price(min_price)

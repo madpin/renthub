@@ -1,3 +1,5 @@
+
+from pathlib import Path
 from typing import List
 import asyncio
 import requests
@@ -24,12 +26,21 @@ from models import (
 from database import get_session
 from backgroud import BackgroundRunner
 from loop import give_it_a_try
+from custom_logger import CustomizeLogger
 
 
 # models.Base.metadata.create_all(bind=engine)
 # Hopefully not needed with Alembic
 
-app = FastAPI()
+config_path=Path(__file__).with_name("custom_logger.json")
+def create_app() -> FastAPI:
+    app = FastAPI(title='CustomLogger', debug=False)
+    logger = CustomizeLogger.make_logger(config_path)
+    app.logger = logger
+    return app
+
+app = create_app()
+# app = FastAPI()
 router = APIRouter(prefix='/api')
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")

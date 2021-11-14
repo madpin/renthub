@@ -4,6 +4,7 @@ services:
   main:
     build: ./main
     volumes:
+      - ./data/main:/data
       # - ./main/alembic:/alembic
       # - ./main/alembic.ini:/alembic.ini
       - ./main/app:/app # Development only
@@ -60,6 +61,8 @@ services:
     build: ./notification
     depends_on:
       - dd-agent 
+    volumes:
+      - ./data/notification:/data
     environment:
       - DD_SERVICE="notifications"
       - DD_ENV="dev"
@@ -76,6 +79,8 @@ services:
     build: ./location
     depends_on:
       - dd-agent 
+    volumes:
+      - ./data/location:/data
     environment:
       - DD_SERVICE="location"
       - DD_ENV="dev"

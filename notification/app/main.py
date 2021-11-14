@@ -1,14 +1,24 @@
 import os
+from pathlib import Path
 import uvicorn
 from typing import List, Optional
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse
+from custom_logger import CustomizeLogger
 
 
 import telegram
 import schemas
 
-app = FastAPI()
+config_path=Path(__file__).with_name("custom_logger.json")
+def create_app() -> FastAPI:
+    app = FastAPI(title='CustomLogger', debug=False)
+    logger = CustomizeLogger.make_logger(config_path)
+    app.logger = logger
+    return app
+
+app = create_app()
+# app = FastAPI()
 
 
 @app.post("/send_telegram/")
