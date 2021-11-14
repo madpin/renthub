@@ -17,8 +17,8 @@
   <link rel="stylesheet" href="{{ url_for('static', path='css/adminlte.min.css') }}">
 
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
-   crossorigin=""/>
+    integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+    crossorigin="" />
 
 </head>
 
@@ -170,8 +170,8 @@
     <aside class="main-sidebar sidebar-dark-primary elevation-4">
       <!-- Brand Logo -->
       <a href="../../index3.html" class="brand-link">
-        <img src="{{ url_for('static', path='img/AdminLTELogo.png') }}" alt="AdminLTE Logo" class="brand-image img-circle elevation-3"
-          style="opacity: .8">
+        <img src="{{ url_for('static', path='img/AdminLTELogo.png') }}" alt="AdminLTE Logo"
+          class="brand-image img-circle elevation-3" style="opacity: .8">
         <span class="brand-text font-weight-light">AdminLTE 3</span>
       </a>
 
@@ -242,7 +242,7 @@
                 </p>
               </a>
             </li>
-            
+
             <li class="nav-item">
               <a href="#" class="nav-link">
                 <i class="nav-icon fas fa-table"></i>
@@ -327,10 +327,10 @@
                 </li>
               </ul>
             </li>
-            
-            
-            
-            
+
+
+
+
         </nav>
         <!-- /.sidebar-menu -->
       </div>
@@ -362,7 +362,7 @@
         <!-- Default box -->
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">{{listing.title}} <a href="/listing/{{listing.id + 1}}">>>></a></h3>
+            <h3 class="card-title"><a href="/listing/{{listing.id - 1}}"><<<</a> {{listing.title}} <a href="/listing/{{listing.id + 1}}">>>></a></h3>
 
             <div class="card-tools">
               <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Collapse">
@@ -509,8 +509,10 @@
                   {% endfor %}
 
                 </div>
-                <button type="button" class="btn btn-block btn-default" onclick="window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={{listing.latitude}},{{listing.longitude}}', '_blank')">Street View</button>
-                
+                <button type="button" class="btn btn-block btn-default"
+                  onclick="window.open('https://www.google.com/maps/@?api=1&map_action=pano&viewpoint={{listing.latitude}},{{listing.longitude}}', '_blank')">Street
+                  View</button>
+
               </div>
 
               <div class="col-12 col-md-12 col-lg-2 order-2 order-md-2">
@@ -654,24 +656,24 @@
   <script src="{{ url_for('static', path='js/demo.js') }}"></script>
 
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-   integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
-   crossorigin=""></script>
+    integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+    crossorigin=""></script>
 
-  <script>
-    var mymap = L.map('map').setView([{{listing.latitude}}, {{listing.longitude}}], 13);
-    var marker = L.marker([{{listing.latitude}}, {{listing.longitude}}]).addTo(mymap);
-
-    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFkcGluIiwiYSI6ImNrdno1MnNuOGFzcTgzMXF3bG5jZ2Q2bXAifQ.lS1WSeLfTyOWgVzdE7th7A', {
-		maxZoom: 18,
-		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-			'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-		id: 'mapbox/streets-v11',
-		tileSize: 512,
-		zoomOffset: -1
-	}).addTo(mymap);
+    <script>
+      var mymap = L.map('map').setView([{{listing.latitude}}, {{listing.longitude}}], 13);
+      var marker = L.marker([{{listing.latitude}}, {{listing.longitude}}]).addTo(mymap);
+  
+      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFkcGluIiwiYSI6ImNrdno1MnNuOGFzcTgzMXF3bG5jZ2Q2bXAifQ.lS1WSeLfTyOWgVzdE7th7A', {
+      maxZoom: 18,
+      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+        'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+      id: 'mapbox/streets-v11',
+      tileSize: 512,
+      zoomOffset: -1
+    }).addTo(mymap);
 
     $(function () {
-      
+
 
 
       $(".listing-rating").click(function (event) {
@@ -681,7 +683,7 @@
           contentType: "application/json; charset=utf-8",
 
           data: JSON.stringify(
-            {"rating_user": parseInt($(this).prop("value"))}
+            { "rating_user": parseInt($(this).prop("value")) }
           ),
           dataType: "json",
 
