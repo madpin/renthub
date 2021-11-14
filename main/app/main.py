@@ -2,7 +2,11 @@ from typing import List
 import asyncio
 import requests
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, Request, HTTPException
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload, lazyload, subqueryload, raiseload
 # from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,14 +25,38 @@ from database import get_session
 from backgroud import BackgroundRunner
 from loop import give_it_a_try
 
+
 # models.Base.metadata.create_all(bind=engine)
 # Hopefully not needed with Alembic
 
 app = FastAPI()
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
+
+
+@app.get("/listing/{id}", response_class=HTMLResponse)
+async def read_item(request: Request, id: str, session: Session = Depends(get_session)):
+    result = session.query(Listing).get(id)
+
+    return templates.TemplateResponse("project-detail.html",
+                                      {
+                                          "request": request,
+                                          "listing": result,
+                                      })
+
+
+@app.get("/test2/", response_class=HTMLResponse)
+async def read_item(request: Request):
+    return templates.TemplateResponse("project-detail.html",
+                                      {
+                                          "request": request,
+                                          "listing": Listing
+                                      })
 
 
 runner = BackgroundRunner()
+
 
 @app.on_event('startup')
 async def app_startup():
@@ -39,11 +67,13 @@ async def app_startup():
 def runner_is_running():
     return runner.is_running
 
+
 @app.put("/runner/is_running")
-def runner_is_running_put(is_running:bool):
+def runner_is_running_put(is_running: bool):
     runner.is_running = is_running
     return 'ok'
-    
+
+
 @app.get("/runner/value")
 def runner_value():
     return runner.value
@@ -65,12 +95,12 @@ def test():
     return give_it_a_try()
 
 
-
 @app.get("/songs", response_model=List[SongRead])
 def get_songs(session: Session = Depends(get_session)):
     result = session.execute(select(Song))
     songs = result.scalars().all()
     return songs
+
 
 @app.post("/songs", response_model=SongRead)
 def create_user(song: SongCreate, session: Session = Depends(get_session)):
@@ -79,6 +109,7 @@ def create_user(song: SongCreate, session: Session = Depends(get_session)):
     session.commit()
     session.refresh(db_item)
     return db_item
+
 
 @app.patch("/songs/{song_id}", response_model=SongRead)
 def update_song(song_id: int, song: SongUpdate, session: Session = Depends(get_session)):
@@ -92,7 +123,6 @@ def update_song(song_id: int, song: SongUpdate, session: Session = Depends(get_s
     session.commit()
     session.refresh(db_song)
     return db_song
-
 
 
 @app.get("/listings", response_model=List[ListingReadWithRelations])
@@ -117,7 +147,8 @@ def listings_post(listing: ListingCreateWithRelations, session: Session = Depend
     db_item = Listing.from_orm(listing)
     facilities_db = []
     for facility in listing.facilities:
-        facility_rec = session.query(Facility).where(Facility.name == facility.name).first()
+        facility_rec = session.query(Facility).where(
+            Facility.name == facility.name).first()
         if(facility_rec is None):
             facility_rec = Facility(
                 name=facility

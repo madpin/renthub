@@ -142,6 +142,7 @@ class FacilityCreate(FacilityBase):
 class ImageBase(SQLModel):
     id: Optional[int]
     url: str
+    url_small: Optional[str]
     size_x: Optional[float]
     size_y: Optional[float]
     listing_id: Optional[int] = Field(default=None, foreign_key="listings.id")
@@ -254,7 +255,7 @@ class Route(RouteBase, table=True):
         sa_column_kwargs={'onupdate': datetime.now()})
 
     listing: Optional[Listing] = Relationship(back_populates="routes",)
-    interest_point: Optional[Listing] = Relationship()
+    interest_point: Optional[InterestPoint] = Relationship()
     
 
 class RouteRead(RouteBase):
