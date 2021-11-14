@@ -5,3 +5,5 @@ uvicorn
 ddtrace
 psycopg2-binary
 requests
+python-dateutil
+jinja2

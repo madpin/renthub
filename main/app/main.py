@@ -4,7 +4,7 @@ import requests
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, lazyload, subqueryload, raiseload
 # from sqlalchemy.ext.asyncio import AsyncSession
 # from sqlalchemy.exc import IntegrityError
 # from sqlalchemy.orm import joinedload, selectinload
@@ -19,6 +19,7 @@ from models import (
 # from database import async_session, get_session
 from database import get_session
 from backgroud import BackgroundRunner
+from loop import give_it_a_try
 
 # models.Base.metadata.create_all(bind=engine)
 # Hopefully not needed with Alembic
@@ -59,6 +60,11 @@ def test():
     return response.json()
 
 
+@app.get("/test_full", )
+def test():
+    return give_it_a_try()
+
+
 
 @app.get("/songs", response_model=List[SongRead])
 def get_songs(session: Session = Depends(get_session)):
@@ -91,9 +97,9 @@ def update_song(song_id: int, song: SongUpdate, session: Session = Depends(get_s
 
 @app.get("/listings", response_model=List[ListingReadWithRelations])
 def get_songs(session: Session = Depends(get_session)):
-    result = session.query(Listing).options(joinedload('*'))
+    result = session.query(Listing).options(subqueryload('*'))
     songs = result.all()
-    print(songs)
+    # print(songs)
     return songs
 
 

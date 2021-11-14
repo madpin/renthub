@@ -28,7 +28,7 @@ async def raw_route(location: schemas.Point = indeed, query: str = 'Grocery'):
     return ret_
 
 
-@app.post("/test/", response_model=List[schemas.RouteSummary])
+@app.post("/route/", response_model=List[schemas.RouteSummary])
 async def raw_route(from_point: schemas.Point = bank_house, to_point: schemas.Point = indeed):
     print('###### 1')
     ret_ = get_routes(from_point.lat,

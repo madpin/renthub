@@ -23,7 +23,7 @@ def int_from_str(text_, default_for_none=None):
 def parse_date(text_):
     if(text_ is None):
         return None
-    return parser.parse(text_, dayfirst=True).date()
+    return parser.parse(text_, dayfirst=True)
 
 
 async def get_listing_details(url):
@@ -47,9 +47,8 @@ async def get_listing_details(url):
         sections=listing.get('sections', ''),
         featuredLevel=listing.get('featuredLevel', ''),
         lastUpdateDate=parse_date(listing.get('lastUpdateDate', None)),
-
-        numBedrooms=listing.get('numBedrooms', ''),
-        numBathrooms=listing.get('numBathrooms', ''),
+        numBedrooms=int_from_str(listing.get('numBedrooms', '0')),
+        numBathrooms=int_from_str(listing.get('numBathrooms', '0')),
         propertyType=listing.get('propertyType', ''),
         daftShortcode=listing.get('daftShortcode', ''),
 
@@ -61,25 +60,32 @@ async def get_listing_details(url):
         premierPartner=listing.get('premierPartner', ''),
         description=listing.get('description', ''),
         facilities=[x['name'] for x in listing.get('facilities', [])],
-        propertyOverview=listing.get('propertyOverview', {}),
-        listingViews=pageProps.get('listingViews', ''),
+        propertyOverview=[
+            f"{x['label']}: {x['text']}" for x in listing.get('propertyOverview', [])],
+        listingViews=int_from_str(str(pageProps.get('listingViews', '0'))),
     )
 
     if('media' in listing):
-        result.images_count = listing['media'].get('totalImages', '')
-        result.has_video = listing['media'].get('hasVideo', '')
-        result.has_virtual_tour = listing['media'].get('hasVirtualTour', '')
-        result.has_brochure = listing['media'].get('hasBrochure', '')
-        result.images = [list(x.values())[0]
-                         for x in listing['media'].get('images', [])]
+        result.totalImages = listing['media'].get('totalImages', '')
+        result.hasVideo = listing['media'].get('hasVideo', '')
+        result.hasVirtualTour = listing['media'].get('hasVirtualTour', '')
+        result.hasBrochure = listing['media'].get('hasBrochure', '')
+        result.images = []
+        for image_block in listing['media'].get('images', []):
+            print(image_block)
+            result.images.append(
+                next(filter(lambda y: y.startswith('http'), image_block.values()))
+            )
 
     # Price
-        if('nonFormatted' in listing and 'price' in listing['nonFormatted']):
-            result.price = listing['nonFormatted']['price']
-        elif('dfpTargetingValues' in pageProps and 'price' in listing['nonFormatted']):
-            result.price = pageProps['dfpTargetingValues']['price']
+    if('nonFormatted' in listing and 'price' in listing['nonFormatted']):
+        result.price = listing['nonFormatted']['price']
+    elif('dfpTargetingValues' in pageProps and 'price' in listing['nonFormatted']):
+        result.price = pageProps['dfpTargetingValues']['price']
+
     result.hash_version = hashlib.md5(
-        f"{result.images_count}{result.description}{result.price}".encode('utf-8')).hexdigest()
+        f"{result.totalImages}{result.description}{result.price}".encode('utf-8')).hexdigest()
+
 
     with open(f"/data/{listing.get('id', '')}.json", 'w') as f:
         json.dump(data, f, indent=2)

@@ -1,6 +1,7 @@
 */secrets*.env
 secrets_dd.env
 /data/db/*
+/data
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
