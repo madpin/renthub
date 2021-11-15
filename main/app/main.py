@@ -50,10 +50,20 @@ templates = Jinja2Templates(directory="templates")
 async def read_item(request: Request, id: str, session: Session = Depends(get_session)):
     result = session.query(Listing).get(id)
 
-    return templates.TemplateResponse("project-detail.html",
+    return templates.TemplateResponse("listing_item.html",
                                       {
                                           "request": request,
                                           "listing": result,
+                                      })
+
+@app.get("/listings/{page}", response_class=HTMLResponse)
+async def read_item(request: Request, page: int, session: Session = Depends(get_session)):
+    results = session.query(Listing).order_by(Listing.last_updated).offset(page*10).limit(page).all()
+
+    return templates.TemplateResponse("listing_list.html",
+                                      {
+                                          "request": request,
+                                          "listings": results,
                                       })
 
 
@@ -196,6 +206,7 @@ def listings_post(listing: ImageCreate, session: Session = Depends(get_session))
 #     result = await session.exec(select(Listing))
 #     listings = result.scalars().all()
 #     return listings
+
 
 # @app.get("/images", response_model=List[ImageWithRelationship])
 # async def get_images(session: AsyncSession = Depends(get_session)):
