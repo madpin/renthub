@@ -243,7 +243,7 @@ class InterestPointCreate(InterestPointBase):
 
 class RouteBase(SQLModel):
     id: Optional[int]
-    waking_distance: Optional[int] = 0
+    walking_distance: Optional[int] = 0
     total_distance: Optional[int] = 0
     total_time: Optional[int] = 0
     public_transport_count: Optional[int] = 0

@@ -1,0 +1,6 @@
+<a href="{{ listing.url }}">{{ listing.title }}</a>
+💰{{listing.price}} | 🛏️ {{listing.bedrooms}} | 🚽 {{listing.bathrooms}} | 🖼️ {{listing.images_count}} | 👀 {{listing.views}}
+{{listing.publish_date.strftime('%Y-%m-%d %H:%M')}} / {{listing.last_updated.strftime('%Y-%m-%d')}}
+---
+{%- for route in listing.routes %}
+ 🚶‍♂️{{(route.walking_distance / 1000)|round(2)}} | 🚏 {{route.public_transport_count}} | ⏱️ {{(route.total_time / 60)|round(2)}} - {{route.interest_point.name}}{% endfor %}

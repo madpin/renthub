@@ -1,21 +1,24 @@
 import os
 from pathlib import Path
+from fastapi.logger import logger
 
 from pydantic.errors import ExtraError
 import uvicorn
 from typing import List, Optional
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Response
 from fastapi.responses import HTMLResponse
+
+
+import here_public_transit_api
+from here_public_transit_api.rest import ApiException
 
 from herepy import (
     PlacesApi,
-    RoutingApi,
-    RouteMode,
     GeocoderApi,
 )
-from custom_logger import CustomizeLogger
-# from location.app.schemas import Point
 
+from custom_logger import CustomizeLogger
+# from location.app.schemas import Point.
 
 from points import indeed, bank_house
 import schemas
@@ -54,7 +57,7 @@ async def raw_route2(from_point: schemas.Point = bank_house, query: str = 'Groce
 
     places_api = PlacesApi(api_key=os.environ['HERE_API_KEY'])
 
-    # fetches a list of places based on a query string and country code
+    # fetches a list of places based on a query string and country code.
     response = places_api.search_in_country(
         coordinates=[from_point.lat,
                      from_point.long], query=query, country_code="IRL"
@@ -65,15 +68,42 @@ async def raw_route2(from_point: schemas.Point = bank_house, query: str = 'Groce
 
 @app.post("/herepy/route")
 async def raw_route2(from_point: schemas.Point = bank_house, to_point: schemas.Point = indeed):
+    print("HERE")
+    print("HERE")
+    print("HERE")
+    print("HERE")
+    configuration = here_public_transit_api.Configuration()
+    configuration.api_key['apiKey'] = os.environ['HERE_API_KEY']
 
-    routing_api = RoutingApi(api_key=os.environ['HERE_API_KEY'])
-    response = routing_api.public_transport(
-        waypoint_a=[from_point.lat, from_point.long],
-        waypoint_b=[to_point.lat, to_point.long],
-        combine_change=True,
-        modes=[RouteMode.balanced, RouteMode.publicTransportTimeTable],
+    api_instance = here_public_transit_api.RoutingApi(
+        here_public_transit_api.ApiClient(configuration)
     )
-    return response.as_dict()
+
+    # response = routing_api.public_transport(
+    #     waypoint_a=[from_point.lat, from_point.long],
+    #     waypoint_b=[to_point.lat, to_point.long],
+    #     combine_change=True,
+    #     modes=[RouteMode.balanced, RouteMode.publicTransportTimeTable],
+    # )
+    # return response.as_dict()
+
+    try:
+        # Routes
+        api_response = api_instance.get_routes(
+            origin=f"{from_point.lat},{from_point.long}",
+            destination=f"{to_point.lat},{to_point.long}",
+            alternatives=5,
+            pedestrian_max_distance=2000,  # meters
+            pedestrian_speed=1,  # m/s
+            _return=[
+                "travelSummary",
+            ],
+        )
+        print(api_response)
+        return api_response
+    except ApiException as e:
+        logger.error(str(e))
+        Response(status_code=501)
 
 
 @app.post("/herepy/address")

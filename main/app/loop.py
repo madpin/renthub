@@ -13,6 +13,8 @@ from fastapi.logger import logger
 from database import engine
 from models import Listing, Facility, Image, InterestPoint, Route, RouteCreate, PlaceNearby
 
+from telegram_msg import send_tg_message
+
 
 def get_daft_search_result():
     try:
@@ -20,7 +22,8 @@ def get_daft_search_result():
         response.raise_for_status()
         # Additional code will only run if the request is successful
     except requests.exceptions.HTTPError as error:
-        print(error)
+        logger.error(error)
+        return None
     return response.json()
 
 
@@ -35,11 +38,14 @@ def get_daft_details(url):
         response = requests.get(
             'http://daft:8000/listing_details/', params=params)
         response.raise_for_status()
+        if response.status_code == 204:
+            return None
         return response.json()
         # Additional code will only run if the request is successful
     except requests.exceptions.HTTPError as error:
         logger.error(error)
-        return response.json()
+        return None
+
     
 
 
@@ -76,7 +82,7 @@ def get_routes(listing: Listing):
             for route in routes:
                 ret_.append(Route(
                     interest_point_id=interest_point.id,
-                    waking_distance=route['waking_distance'],
+                    walking_distance=route['walking_distance'],
                     total_distance=route['total_distance'],
                     total_time=route['total_time'],
                     public_transport_count=route['public_transport_count'],
@@ -119,73 +125,75 @@ def get_places_nearby(listing: Listing):
     return ret_
 
 
-def save_new_listing(search_result, listing_d):
+def save_new_listing(search_result, listing_d, session):
 
-    with Session(engine) as session:
-        listing = Listing()
-        # Search Result
-        listing.source = 'daft'
-        listing.is_active = True
-        listing.url = search_result['url']
-        listing.address = search_result['title']
-        listing.price = search_result['monthly_price']
-        listing.latitude = search_result['latitude']
-        listing.longitude = search_result['longitude']
-        listing.publish_date = dateutil.parser.isoparse(
-            search_result['publish_date'])
+    listing = Listing()
+    # Search Result
+    listing.source = 'daft'
+    listing.is_active = True
+    listing.url = search_result['url']
+    listing.address = search_result['title']
+    listing.price = search_result['monthly_price']
+    listing.latitude = search_result['latitude']
+    listing.longitude = search_result['longitude']
+    listing.publish_date = dateutil.parser.isoparse(
+        search_result['publish_date'])
 
-        # Details:
-        listing.source_id = listing_d['id']
-        listing.source_code = listing_d['daftShortcode']
-        listing.title = listing_d['title']
-        listing.bedrooms = listing_d['numBedrooms']
-        listing.bathrooms = listing_d['numBathrooms']
-        listing.description = listing_d['description']
-        listing.last_updated = listing_d['lastUpdateDate']
-        listing.images_count = listing_d['totalImages']
-        listing.views = listing_d['listingViews']
+    # Details:
+    listing.source_id = listing_d['id']
+    listing.source_code = listing_d['daftShortcode']
+    listing.title = listing_d['title']
+    listing.bedrooms = listing_d['numBedrooms']
+    listing.bathrooms = listing_d['numBathrooms']
+    listing.description = listing_d['description']
+    listing.last_updated = listing_d['lastUpdateDate']
+    listing.images_count = listing_d['totalImages']
+    listing.views = listing_d['listingViews']
 
-        facilities_arr = []
-        for facility in listing_d['facilities']:
-            facility_sttm = select(Facility).\
-                where(Facility.name == facility.title()).\
-                where(Facility.category == 'facilities')
-            facility_obj = session.exec(facility_sttm).first()
+    facilities_arr = []
+    for facility in listing_d['facilities']:
+        facility_sttm = select(Facility).\
+            where(Facility.name == facility.title()).\
+            where(Facility.category == 'facilities')
+        facility_obj = session.exec(facility_sttm).first()
 
-            if(not facility_obj):
-                facility_obj = Facility(
-                    name=facility.title(),
-                    category='facilities'
-                )
-            facilities_arr.append(facility_obj)
+        if(not facility_obj):
+            facility_obj = Facility(
+                name=facility.title(),
+                category='facilities'
+            )
+        facilities_arr.append(facility_obj)
 
-        for facility in listing_d['propertyOverview']:
-            facility_sttm = select(Facility).\
-                where(Facility.name == facility.title()).\
-                where(Facility.category == 'overview')
-            facility_obj = session.exec(facility_sttm).first()
+    for facility in listing_d['propertyOverview']:
+        facility_sttm = select(Facility).\
+            where(Facility.name == facility.title()).\
+            where(Facility.category == 'overview')
+        facility_obj = session.exec(facility_sttm).first()
 
-            if(not facility_obj):
-                facility_obj = Facility(
-                    name=facility.title(),
-                    category='overview'
-                )
-            facilities_arr.append(facility_obj)
-        listing.facilities = facilities_arr
+        if(not facility_obj):
+            facility_obj = Facility(
+                name=facility.title(),
+                category='overview'
+            )
+        facilities_arr.append(facility_obj)
+    listing.facilities = facilities_arr
 
-        listing.images = [Image(url=x['url'], url_600=x['url_600']) for x in listing_d['images']]
-        listing.routes = get_routes(listing)
-        listing.places_nearby = get_places_nearby(listing)
+    listing.images = [Image(url=x['url'], url_600=x['url_600']) for x in listing_d['images']]
+    listing.routes = get_routes(listing)
+    listing.places_nearby = get_places_nearby(listing)
 
-        # Saving it
-        session.add(listing)
-        session.commit()
+    # Saving it
+    session.add(listing)
+    session.commit()
+    return listing
 
 
-def give_it_a_try(how_many = 25):
+def give_it_a_try(how_many = 1):
     ret_ = {}
 
     daft_search_results = get_daft_search_result()
+    if(daft_search_results is None):
+        return None
     daft_result_list = daft_search_results['result_list']
     c = 0
     details = []
@@ -204,8 +212,11 @@ def give_it_a_try(how_many = 25):
             else:
                 print(daft_result['url'])
                 details = get_daft_details(daft_result['url'])
-                save_new_listing(daft_result, details)
-
+                if(details is None):
+                    continue
+                listing = save_new_listing(daft_result, details, session)
+                
+                send_tg_message(listing)
             c += 1
             if c < how_many:
                 continue

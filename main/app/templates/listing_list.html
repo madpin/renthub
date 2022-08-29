@@ -416,7 +416,7 @@
                       <div class="info-box-content">
                         <span class="info-box-text text-center text-muted">Indeed</span>
                         <span
-                          class="info-box-number text-center text-muted mb-0">{{(route.waking_distance/1000)|round(1)}}km
+                          class="info-box-number text-center text-muted mb-0">{{(route.walking_distance/1000)|round(1)}}km
                           {{(route.total_time / 60)|round|int}}min ({{route.public_transport_count}})</span>
                       </div>
                     </div>
@@ -461,17 +461,17 @@
                 </div>
 
                 <div class="card-body row">
-                  <div id="map" style="width: 100%; height: 400px;"></div>
+                  <!-- <div id="map" style="width: 100%; height: 400px;"></div> -->
 
                 </div>
                 <div class="card-body row">
                   <div class="col-md-2">
-                    <button type="button" class="btn btn-outline-danger btn-block listing-rating" value='1'><i
-                        class="fa fa-bell"></i> REAL bad</button>
+                    <button type="button" class="btn btn-outline-danger btn-block listing-rating" value='1'>
+                      <i class="fa fa-bell"></i> REAL bad</button>
                   </div>
                   <div class="col-md-2">
-                    <button type="button" class="btn btn-outline-danger btn-block listing-rating" value='2'><i
-                        class="fa fa-bell"></i> Bad</button>
+                    <button type="button" class="btn btn-outline-danger btn-block listing-rating" value='2'>
+                      <i class="fa fa-bell"></i> Bad</button>
                   </div>
                   <div class="col-md-2">
                     <button type="button" class="btn btn-outline-warning btn-block listing-rating" value='3'><i
@@ -503,7 +503,7 @@
                 <div class="text-muted">
                   {%- for route in listing.routes %}
                   <p class="text-sm"> {{route.interest_point.name}}
-                    <b class="d-block">🚶‍♂️{{route.waking_distance}} | 🚏 {{route.public_transport_count}} | ⏱️
+                    <b class="d-block">🚶‍♂️{{route.walking_distance}} | 🚏 {{route.public_transport_count}} | ⏱️
                       {{(route.total_time / 60)|round(2)}}</b>
                   </p>
                   {% endfor %}
@@ -595,8 +595,8 @@
           <div class="card-body">
             <div class="row">
               {%- for image in listing.images %}
-              <div class="col-sm-4">
-                <a data-remote="{{image.url}}" data-toggle="lightbox" data-max-width="6000" data-gallery="gallery"
+              <div class="col-sm-1">
+                <a data-remote="{{image.url}}" data-toggle="lightbox" data-max-width="6000" data-gallery="gallery_{{listing.id}}"
                   data-title="Image Id: {{image.id}}" data-type="image">
                   <img src="{{image.url_600}}" class="img-fluid mb-2" />
                 </a>
@@ -661,39 +661,12 @@
     crossorigin=""></script>
 
     <script>
-      var mymap = L.map('map').setView([{{listing.latitude}}, {{listing.longitude}}], 13);
-      var marker = L.marker([{{listing.latitude}}, {{listing.longitude}}]).addTo(mymap);
-  
-      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFkcGluIiwiYSI6ImNrdno1MnNuOGFzcTgzMXF3bG5jZ2Q2bXAifQ.lS1WSeLfTyOWgVzdE7th7A', {
-      maxZoom: 18,
-      attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-        'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-      id: 'mapbox/streets-v11',
-      tileSize: 512,
-      zoomOffset: -1
-    }).addTo(mymap);
+
 
     $(function () {
 
 
 
-      $(".listing-rating").click(function (event) {
-        $.ajax({
-          type: "PATCH",
-          url: "{{listing.id}}",
-          contentType: "application/json; charset=utf-8",
-
-          data: JSON.stringify(
-            { "rating_user": parseInt($(this).prop("value")) }
-          ),
-          dataType: "json",
-
-          // success: alert($(this).prop("value")),
-
-          // dataType: dataType
-        })
-        // alert($(this).prop("value"));
-      });
 
       $(document).on('click', '[data-toggle="lightbox"]', function (event) {
         event.preventDefault();

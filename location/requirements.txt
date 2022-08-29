@@ -4,3 +4,4 @@ ddtrace
 requests
 herepy
 loguru
+git+https://github.com/madpin/scg-here-public-transit-api.git@main#egg=here-public-transit-api

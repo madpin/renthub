@@ -2,7 +2,7 @@ from fastapi.logger import logger
 
 import schemas
 from daftlistings import Daft, SearchType, SortType
-
+from utils import str_to_float, get_attr_try
 
 async def get_daft_search_result(location=None, min_price=None, max_price=None):
 
@@ -25,25 +25,41 @@ async def get_daft_search_result(location=None, min_price=None, max_price=None):
     listings = daft.search()
     result_items = []
     for listing in listings:
+
+        url=get_attr_try(listing, "daft_link")
+        title=get_attr_try(listing, "title")
+        latitude=get_attr_try(listing, "latitude")
+        longitude=get_attr_try(listing, "longitude")
+        bedrooms=get_attr_try(listing, "bedrooms")
+        bathrooms=get_attr_try(listing, "bathrooms")
+        publish_date=get_attr_try(listing, "publish_date")
+        category=get_attr_try(listing, "category")
+        featured_level=get_attr_try(listing, "featured_level")
+        sections=get_attr_try(listing, "sections")
+        source_code=get_attr_try(listing, "shortcode")
+        monthly_price=str_to_float(get_attr_try(listing, "monthly_price")) or -1
+
         searchItem = schemas.SearchResultItem(                  
-            url=listing.daft_link,
-            title=listing.title,
-            monthly_price=listing.monthly_price,
-            latitude=listing.latitude,
-            longitude=listing.longitude,
-            bedrooms=listing.bedrooms,
-            bathrooms=listing.bathrooms,
-            publish_date=listing.publish_date,
-            category=listing.category,
-            featured_level=listing.featured_level,
-            sections=listing.sections,
-            source_code=listing.shortcode,
+            url=url,
+            title=title,
+            monthly_price=monthly_price,
+            latitude=latitude,
+            longitude=longitude,
+            bedrooms=bedrooms,
+            bathrooms=bathrooms,
+            publish_date=publish_date,
+            category=category,
+            featured_level=featured_level,
+            sections=sections,
+            source_code=source_code,
         )
         result_items.append(searchItem)
 
         result = schemas.SearchResultList(
             result_list=result_items,
+            # results_count=daft._total_results,
+            # search_rules=daft._make_payload()
             results_count=daft._total_results,
-            search_rules=daft._make_payload()
+            search_rules={}
         )
     return result

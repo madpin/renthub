@@ -1,4 +1,5 @@
 
+from os import abort
 from pathlib import Path
 from typing import List
 import asyncio
@@ -8,6 +9,7 @@ from fastapi import Depends, FastAPI, Request, HTTPException, APIRouter
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from fastapi.logger import logger
 
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload, lazyload, subqueryload, raiseload
@@ -18,7 +20,7 @@ from sqlalchemy import select
 
 from models import (
     Song, SongRead, SongCreate, SongUpdate,
-    Listing, ListingCreate, ListingRead, ListingReadWithRelations, ListingCreateWithRelations,ListingUpdate,
+    Listing, ListingCreate, ListingRead, ListingReadWithRelations, ListingCreateWithRelations, ListingUpdate,
     Image, ImageCreate, ImageRead,
     Facility
 )
@@ -27,17 +29,21 @@ from database import get_session
 from backgroud import BackgroundRunner
 from loop import give_it_a_try
 from custom_logger import CustomizeLogger
+from telegram_msg import send_tg_message
 
 
 # models.Base.metadata.create_all(bind=engine)
 # Hopefully not needed with Alembic
 
-config_path=Path(__file__).with_name("custom_logger.json")
+config_path = Path(__file__).with_name("custom_logger.json")
+
+
 def create_app() -> FastAPI:
     app = FastAPI(title='CustomLogger', debug=False)
     logger = CustomizeLogger.make_logger(config_path)
     app.logger = logger
     return app
+
 
 app = create_app()
 # app = FastAPI()
@@ -56,25 +62,25 @@ async def read_item(request: Request, id: str, session: Session = Depends(get_se
                                           "listing": result,
                                       })
 
+
+@app.get("/listing/{id}/send_tg", response_class=HTMLResponse)
+async def send_tg(request: Request, id: str, session: Session = Depends(get_session)):
+    result = session.query(Listing).get(id)
+
+    send_tg_message(result)
+
+
+
 @app.get("/listings/{page}", response_class=HTMLResponse)
 async def read_item(request: Request, page: int, session: Session = Depends(get_session)):
-    results = session.query(Listing).order_by(Listing.last_updated).offset(page*10).limit(page).all()
+    results = session.query(Listing).order_by(
+        Listing.created_at.desc()).offset(page*10).limit(10).all()
 
     return templates.TemplateResponse("listing_list.html",
                                       {
                                           "request": request,
                                           "listings": results,
                                       })
-
-
-# @app.get("/test2/", response_class=HTMLResponse)
-# async def read_item(request: Request):
-#     return templates.TemplateResponse("project-detail.html",
-#                                       {
-#                                           "request": request,
-#                                           "listing": Listing
-#                                       })
-
 
 runner = BackgroundRunner()
 
@@ -111,7 +117,7 @@ def test():
     return response.json()
 
 
-@app.get("/test_full", )
+@app.get("/loop_search", )
 def test():
     return give_it_a_try()
 
@@ -180,6 +186,7 @@ def listings_post(listing: ListingCreateWithRelations, session: Session = Depend
     session.refresh(db_item)
     return db_item
 
+
 @app.patch("/listing/{id}", response_model=ListingRead)
 def update_song(id: int, listing: ListingUpdate, session: Session = Depends(get_session)):
     db_listing = session.get(Listing, id)
@@ -192,6 +199,7 @@ def update_song(id: int, listing: ListingUpdate, session: Session = Depends(get_
     session.commit()
     session.refresh(db_listing)
     return db_listing
+
 
 @app.post("/images", response_model=ImageRead)
 def listings_post(listing: ImageCreate, session: Session = Depends(get_session)):

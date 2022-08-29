@@ -3,6 +3,10 @@ version: '3'
 services:
   main:
     build: ./main
+    container_name: renthub-main
+    networks:
+      - default
+      - caddy
     volumes:
       - ./data/main:/data
       # - ./main/alembic:/alembic
@@ -23,6 +27,160 @@ services:
       - DD_TRACE_AGENT_PORT=8126
     ports:
       - "8000:8000"
+    labels:
+      caddy: renthub.madpin.dev
+      caddy.reverse_proxy: "{{upstreams 8000}}"
+
+# #############################################################################
+# #############################################################################
+# #############################################################################
+
+  daft:
+    build: ./provider_daft
+    container_name: renthub-provider_daft
+    networks:
+      - default
+      - caddy
+    depends_on:
+      - dd-agent
+    volumes:
+      - ./data/provider_daft:/data
+      - ./provider_daft/app:/app # Development only
+    environment:
+      - DD_SERVICE="daft_info"
+      - DD_ENV="dev"
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_AGENT_PORT=8126
+    ports:
+      - "8001:8000"
+    labels:
+      caddy: provider-daft.renthub.madpin.dev
+      caddy.reverse_proxy: "{{upstreams 8000}}"
+# #############################################################################
+# #############################################################################
+# #############################################################################
+  notification:
+    build: ./notification
+    container_name: renthub-notification
+    networks:
+      - default
+      - caddy
+    depends_on:
+      - dd-agent 
+    volumes:
+      - ./data/notification:/data
+      - ./notification/app:/app # Development only
+    environment:
+      - DD_SERVICE="notifications"
+      - DD_ENV="dev"
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_AGENT_PORT=8126
+    env_file:
+        - ./notification/secrets.env
+    ports:
+      - "8010:8000"
+    labels:
+      caddy: notification.renthub.madpin.dev
+      caddy.reverse_proxy: "{{upstreams 8000}}"
+
+# #############################################################################
+# #############################################################################
+# #############################################################################
+  location:
+    build: ./location
+    container_name: renthub-location
+    networks:
+      - default
+      - caddy
+    depends_on:
+      - dd-agent 
+    volumes:
+      - ./data/location:/data
+      - ./location/app:/app # Development only
+    environment:
+      - DD_SERVICE="location"
+      - DD_ENV="dev"
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_AGENT_PORT=8126
+    env_file:
+        - ./location/secrets.env
+    ports:
+      - "8020:8000"
+    labels:
+      caddy: location.renthub.madpin.dev
+      caddy.reverse_proxy: "{{upstreams 8000}}"
+      
+# _____________________________________________________________________________
+# THEEND_THEEND_THEEND_THEEND_THEEND_THEEND_THEEND_THEEND_THEEND_THEEND_THEEND_
+# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+  dd-agent:
+    image: datadog/agent:latest
+    container_name: renthub-datadog
+    networks:
+      - default
+    volumes:
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /proc/:/host/proc/:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    env_file:
+        - ./secrets_dd.env
+  
+  db:
+    image: postgres:14-alpine3.14
+    container_name: renthub-postgres
+    networks:
+      - default
+    depends_on:
+      - dd-agent 
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DD_SERVICE="postgres"
+      - DD_ENV="dev"
+      - DD_LOGS_INJECTION=true
+      - DD_TRACE_SAMPLE_RATE=1
+      - DD_AGENT_HOST=dd-agent
+      - DD_TRACE_AGENT_PORT=8126
+    # ports:
+    #   - 5432:5432
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    networks:
+      - default
+      - caddy
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    labels:
+      caddy: pg.renthub.madpin.dev
+      caddy.reverse_proxy: "{{upstreams 80}}"
+
+# #############################################################################
+# #############################################################################
+# #############################################################################
+
+networks:
+  default:
+    driver: bridge
+  caddy:
+    external:
+      name: caddy
+
+
+
+# Old:
+
   # rentcrud:
   #   build: ./rentcrud
   #   volumes:
@@ -39,84 +197,3 @@ services:
   #     - DD_TRACE_AGENT_PORT=8126
   #   ports:
   #     - "8001:8000"
-
-  daft:
-    build: ./provider_daft
-    depends_on:
-      - dd-agent
-    volumes:
-      - ./data/provider_daft:/data
-      - ./provider_daft/app:/app # Development only
-    environment:
-      - DD_SERVICE="daft_info"
-      - DD_ENV="dev"
-      - DD_LOGS_INJECTION=true
-      - DD_TRACE_SAMPLE_RATE=1
-      - DD_AGENT_HOST=dd-agent
-      - DD_TRACE_AGENT_PORT=8126
-    ports:
-      - "8001:8000"
-
-  notification:
-    build: ./notification
-    depends_on:
-      - dd-agent 
-    volumes:
-      - ./data/notification:/data
-    environment:
-      - DD_SERVICE="notifications"
-      - DD_ENV="dev"
-      - DD_LOGS_INJECTION=true
-      - DD_TRACE_SAMPLE_RATE=1
-      - DD_AGENT_HOST=dd-agent
-      - DD_TRACE_AGENT_PORT=8126
-    env_file:
-        - ./notification/secrets.env
-    ports:
-      - "8010:8000"
-
-  location:
-    build: ./location
-    depends_on:
-      - dd-agent 
-    volumes:
-      - ./data/location:/data
-    environment:
-      - DD_SERVICE="location"
-      - DD_ENV="dev"
-      - DD_LOGS_INJECTION=true
-      - DD_TRACE_SAMPLE_RATE=1
-      - DD_AGENT_HOST=dd-agent
-      - DD_TRACE_AGENT_PORT=8126
-    env_file:
-        - ./location/secrets.env
-    ports:
-      - "8020:8000"
-      
-  dd-agent:
-    image: datadog/agent:latest
-    volumes:
-      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
-      - /proc/:/host/proc/:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    env_file:
-        - ./secrets_dd.env
-  
-  db:
-    image: postgres:14-alpine3.14
-    depends_on:
-      - dd-agent 
-    volumes:
-      - ./data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - DD_SERVICE="postgres"
-      - DD_ENV="dev"
-      - DD_LOGS_INJECTION=true
-      - DD_TRACE_SAMPLE_RATE=1
-      - DD_AGENT_HOST=dd-agent
-      - DD_TRACE_AGENT_PORT=8126
-    ports:
-      - 5432:5432

@@ -416,7 +416,7 @@
                       <div class="info-box-content">
                         <span class="info-box-text text-center text-muted">Indeed</span>
                         <span
-                          class="info-box-number text-center text-muted mb-0">{{(route.waking_distance/1000)|round(1)}}km
+                          class="info-box-number text-center text-muted mb-0">{{(route.walking_distance/1000)|round(1)}}km
                           {{(route.total_time / 60)|round|int}}min ({{route.public_transport_count}})</span>
                       </div>
                     </div>
@@ -503,7 +503,7 @@
                 <div class="text-muted">
                   {%- for route in listing.routes %}
                   <p class="text-sm"> {{route.interest_point.name}}
-                    <b class="d-block">🚶‍♂️{{route.waking_distance}} | 🚏 {{route.public_transport_count}} | ⏱️
+                    <b class="d-block">🚶‍♂️{{route.walking_distance}} | 🚏 {{route.public_transport_count}} | ⏱️
                       {{(route.total_time / 60)|round(2)}}</b>
                   </p>
                   {% endfor %}

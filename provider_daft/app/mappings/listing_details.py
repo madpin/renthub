@@ -6,6 +6,7 @@ import requests
 from dateutil import parser
 from nums_from_string import get_nums
 from bs4 import BeautifulSoup
+from fastapi.logger import logger
 
 import schemas
 
@@ -37,9 +38,14 @@ async def get_listing_details(url):
     soup = BeautifulSoup(html, 'html.parser')
     data = json.loads(soup.find(id="__NEXT_DATA__").text)
     pageProps = data['props']['pageProps']
+    if "listing" not in pageProps:
+        logger.error(f"URL without Listing: {url}")
+        return None
     listing = pageProps['listing']
     # print(listing)
-
+    with open(f"/data/raw/{listing.get('id', '')}.json", 'w') as f:
+        json.dump(listing, f, indent=2)
+        
     result = schemas.DaftListing(
         id=listing.get('id', ''),
         title=listing.get('title', ''),

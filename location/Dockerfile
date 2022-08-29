@@ -3,7 +3,7 @@ FROM python:3.8.12-slim-buster
 # MAINTANER Thiago MadPin "madpin@gmail.com"
 
 
-
+RUN apt update && apt install git -y
 # We copy just the requirements.txt first to leverage Docker cache
 COPY ./requirements.txt /app/requirements.txt
 

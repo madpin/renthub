@@ -16,7 +16,7 @@ class Location(BaseModel):
     tags: Optional[List[str]]
 
 class RouteSummary(BaseModel):
-    waking_distance: int
+    walking_distance: int
     total_distance: int
     total_time: int
     public_transport_count: int
